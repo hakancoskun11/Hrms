@@ -16,21 +16,6 @@ import kodamaio.hrms.entities.concretes.Candidate;
 @RequestMapping("/api/candidate")
 public class CandidateController {
 	
-	private CandidateService candidateService;
-	
-	public CandidateController(CandidateService candidateService) {
-		super();
-		this.candidateService=candidateService;
-	}
-	
-	@GetMapping("/getall")
-	public DataResult<List<Candidate>> getAll() {
-		return this.candidateService.getAll();
-	}
-	
-	@PostMapping("/add")
-	public DataResult<Candidate> add(Candidate candidate) {
-		return this.candidateService.add(candidate);
-	}
+
 	
 }

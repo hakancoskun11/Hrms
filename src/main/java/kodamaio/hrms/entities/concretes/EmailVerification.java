@@ -1,13 +1,17 @@
 package kodamaio.hrms.entities.concretes;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
@@ -15,6 +19,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name="verification_codes")
+@EqualsAndHashCode(callSuper = false)
+@PrimaryKeyJoinColumn(name="user_id", referencedColumnName = "id")
 public class EmailVerification {
 	@Id
 	@GeneratedValue
@@ -30,8 +36,8 @@ public class EmailVerification {
 	@Column(name="user_id")
 	private int userId;
 	
-	public boolean isVerified() {
-		return this.isVerified;
-	}
+	@Column(name="verification_date")
+	private Date verificationDate = new Date();
+	
 	
 }

@@ -7,7 +7,9 @@ import org.springframework.stereotype.Service;
 
 import kodamaio.hrms.core.utilities.results.DataResult;
 import kodamaio.hrms.core.utilities.results.ErrorDataResult;
+import kodamaio.hrms.core.utilities.results.ErrorResult;
 import kodamaio.hrms.core.utilities.results.SuccessDataResult;
+import kodamaio.hrms.core.utilities.results.SuccessResult;
 import kodamaio.hrms.dataAccess.abstracts.JobTitleDao;
 import kodamaio.hrms.business.abstracts.JobTitleService;
 
@@ -23,22 +25,26 @@ public class JobTitleManager implements JobTitleService{
 		super();
 		this.jobTitleDao=jobTitleDao;
 	}
-	
-	
+
 	@Override
 	public DataResult<JobTitle> add(JobTitle title) {
-		
-		if(jobTitleDao.findAllByTitle(title.getTitle()).stream().count() !=0) {
-			return new ErrorDataResult<JobTitle>(null, "bu iş pozisyonu zaten kayıtlı");
-		}
-		return new SuccessDataResult<JobTitle>(this.jobTitleDao.save(title),"Başarıyla iş pozisyonu eklendi");
-		
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DataResult<JobTitle> delete(JobTitle jobPositio) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public DataResult<List<JobTitle>> getAll() {
-		
-		return new SuccessDataResult<List<JobTitle>>(jobTitleDao.findAll(),"Başarılı Şekilde Listelendi");
+		// TODO Auto-generated method stub
+		return null;
 	}
 
+	
+	
+	
 }

@@ -7,7 +7,7 @@ import kodamaio.hrms.entities.concretes.JobTitle;
 
 public interface JobTitleService {
 	DataResult<JobTitle> add(JobTitle title);
+	DataResult<JobTitle> delete(JobTitle jobPositio);
 	DataResult<List<JobTitle>> getAll();
-	//DataResult<List<JobTitle>> findById(int id);
-	//DataResult<List<JobTitle>> findJobByTitles(String title);
+	
 }

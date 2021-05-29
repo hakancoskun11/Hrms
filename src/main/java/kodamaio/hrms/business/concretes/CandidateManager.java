@@ -1,144 +1,83 @@
 package kodamaio.hrms.business.concretes;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import kodamaio.hrms.business.abstracts.CandidateService;
-import kodamaio.hrms.business.abstracts.EmailVerificationService;
-import kodamaio.hrms.business.abstracts.UserService;
-import kodamaio.hrms.core.utilities.IdentityValidation;
+import kodamaio.hrms.core.adapters.abstracts.RegexService;
+import kodamaio.hrms.core.adapters.abstracts.SimulatedMernisService;
 import kodamaio.hrms.core.utilities.results.DataResult;
-import kodamaio.hrms.core.utilities.results.ErrorDataResult;
+
+import kodamaio.hrms.core.utilities.results.ErrorResult;
+import kodamaio.hrms.core.utilities.results.Result;
 import kodamaio.hrms.core.utilities.results.SuccessDataResult;
+import kodamaio.hrms.core.utilities.results.SuccessResult;
 import kodamaio.hrms.dataAccess.abstracts.CandidateDao;
 import kodamaio.hrms.entities.concretes.Candidate;
-import kodamaio.hrms.entities.concretes.EmailVerification;
-import kodamaio.hrms.entities.concretes.User;
+
 
 @Service
 public class CandidateManager implements CandidateService{
-	
-	//dependecy injection
-	@Autowired
+
 	private CandidateDao candidateDao;
-	private EmailVerificationService emailVerificationService;
-	private UserService userService;
+	private RegexService regexService;
+	private SimulatedMernisService simulatedMernisService;
 	
-
-	public CandidateManager(CandidateDao candidateDao,EmailVerificationService emailVerificationService,UserService userService) {
-		super();
-		this.candidateDao = candidateDao;
-		this.emailVerificationService = emailVerificationService;
-		this.userService = userService;
+	@Autowired
+	public CandidateManager(CandidateDao candidateDao,RegexService regexService,  SimulatedMernisService simulatedMernisService) {
+		this.candidateDao=candidateDao;
+		this.regexService=regexService;
+		this.simulatedMernisService=simulatedMernisService;
+		
 	}
-
 	@Override
-	public DataResult<Candidate> add(Candidate candidate) {
-		// TODO Auto-generated method stub
-		if(!firstNameChecker(candidate)) {
-			return new ErrorDataResult<Candidate>(null,"Ad Bilgisi Doldurulmak Zorundadır");
+	public Result add(Candidate candidate) {
+		if(candidate.getFirstName().isEmpty() || candidate.getLastName().isEmpty() ||candidate.getIdentificationNumber().isEmpty()
+				||candidate.getEmail().isEmpty() || candidate.getPassword().isEmpty()) {
+			return new ErrorResult("Alanlar boş bırakılmamalıdır.");
 		}
-		else if(!lastNameChecker(candidate)) {
-			return new ErrorDataResult<Candidate>(null,"SoyAdı Bilgisi Doldurulmak Zorundadır");
+		if(!regexService.isFirstNameFormat(candidate.getFirstName())) {
+			return new ErrorResult("lütfen isminizi doğru şekilde giriniz.");
 		}
-		
-		else if(!IdentityValidation.isRealPerson(candidate.getIdentificationNumber())) {
-			return new ErrorDataResult<Candidate>(null,"Kimlik Doğrulanamadı");
+		if(!regexService.isLastNameFormat(candidate.getLastName())) {
+			return new ErrorResult("lütfen soy isminizi doğru şekilde giriniz.");
 		}
-		else if(candidate.getIdentificationNumber().isBlank()) {
-			return new ErrorDataResult<Candidate>(null,"Tc Kimlik Bilgisi Boş Bırakılamaz");
-		}
-		
-		else if(!birthDateChecker(candidate)) {
-			return new ErrorDataResult<Candidate>(null,"Doğum Tarihi Bilgisi Doldurulmak Zorundadır");
+		if(!regexService.isBirthYearFormat(candidate.getBirthDate())) {
+			return new ErrorResult("Please enter in birth year format");
 		}
 		
-		else if(!emailNullChecker(candidate)) {
-			return new ErrorDataResult<Candidate>(null,"Email Bilgisi Doldurulmak Zorundadır");
-		}
-		else if(!isRealEmail(candidate)) {
-			return new ErrorDataResult<Candidate>(null,"Email Adresiniz Yanlış");
+		if(!regexService.isEmailFormat(candidate.getEmail())) {
+			return new ErrorResult("Please enter in e-mail format");
 		}
 		
-		else if(!passwordNullChecker(candidate)) {
-			return new ErrorDataResult<Candidate>(null,"Şifre Bilgisi Doldurulmak Zorundadır");
+		if(!simulatedMernisService.checkMernis(candidate.getFirstName(), candidate.getLastName(), candidate.getIdentificationNumber(), 
+				candidate.getBirthDate())) {
+			return new ErrorResult("Giriş Başarısız");
 		}
-		
-		else if(candidateDao.findAllByEmail(candidate.getEmail()).stream().count() != 0 ) {
-			return new ErrorDataResult<Candidate>(null,"Email Zaten Kayıtlı");
+		if(candidateDao.findByEmailEquals(candidate.getEmail())!=null) {
+			return new ErrorResult("Email zaten sisteme kayıtlı.");
 		}
-		else if(candidateDao.findAllByIdentificationNumber(candidate.getIdentificationNumber()).stream().count() != 0 ) {
-			return new ErrorDataResult<Candidate>(null,"TC Numarası Zaten Kayıtlı");
+		if(candidateDao.findIdentityNumberEquals(candidate.getIdentificationNumber())!=null) {
+			return new ErrorResult("Kimlik numarası zaten sisteme kayıtlı");
 		}
-		User savedUser = this.userService.add(candidate);
-		this.emailVerificationService.generateCode(new EmailVerification(),savedUser.getId());
-		return new SuccessDataResult<Candidate>(this.candidateDao.save(candidate),"İş Arayan Hesabı Eklendi , Doğrulama Kodu Gönderildi:"+candidate.getId());
-		
-
-
+		else {
+			this.candidateDao.save(candidate);
+			return new SuccessResult(true,"Kaydınız başarılı şekilde tamamlanmıştır.");
+		}
 		
 		
 		
 		
 	}
 	
-	private boolean firstNameChecker(Candidate candidate) {
-		if(candidate.getFirstName().isBlank() || candidate.getFirstName().equals(null)) {
-			return false;
-		}
-		return true;
-	}
-	
-	private boolean lastNameChecker(Candidate candidate) {
-		if(candidate.getLastName().isBlank() || candidate.getLastName().equals(null)) {
-			return false;
-		}
-		return true;
-	}
-	
-	private boolean birthDateChecker(Candidate candidate) {
-		if(candidate.getBirthDate().equals(null)) {
-			return false;
-		}
-		return true;
-	}
-	
-	private boolean emailNullChecker(Candidate candidate) {
-		if(candidate.getEmail().isBlank() || candidate.getEmail().equals(null)) {
-			return false;
-		}
-		return true;
-	}
-	
-	private boolean passwordNullChecker(Candidate candidate) {
-		if(candidate.getPassword().isBlank() || candidate.getPassword().equals(null)) {
-			return false;
-		}
-		return true;
-	}
-	
-	private boolean isRealEmail(Candidate candidate) {
-		 String regex = "^(.+)@(.+)$";
-	     Pattern pattern = Pattern.compile(regex);
-	     Matcher matcher = pattern.matcher(candidate.getEmail());
-	     if(!matcher.matches()) {
-	    	 return false;
-	     }
-	     return true;
-	     
-	}
-	
-
-
 	@Override
 	public DataResult<List<Candidate>> getAll() {
-		// TODO Auto-generated method stub
-		return new SuccessDataResult<List<Candidate>>(this.candidateDao.findAll(),"Başarılı Şekilde İş Arayanlar Listelendi");
+		return new SuccessDataResult<List<Candidate>> (this.candidateDao.findAll(),"Listed");
 	}
+	
+	
 	
 	
 	

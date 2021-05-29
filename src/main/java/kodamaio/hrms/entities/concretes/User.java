@@ -1,5 +1,7 @@
 package kodamaio.hrms.entities.concretes;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -27,4 +29,10 @@ public class User {
 	
 	@Column(name="password")
 	private String password;
+	
+	@Column(name="status")
+	private boolean status;
+	
+	@Column(name="created_on")
+	private Date createdOn = new Date();
 }

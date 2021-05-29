@@ -23,20 +23,6 @@ public class EmployerController {
 		this.employerService=employerService;
 	}
 	
-	@GetMapping("/getall")
-	public DataResult<List<Employer>> getAll() {
-		return this.employerService.getAll();
-	}
-	
-	@PostMapping("/add")
-	public DataResult<Employer> add(Employer employer){
-		return this.employerService.add(employer);
-	}
-	
-	
-	
-	
-	
 	
 	
 
